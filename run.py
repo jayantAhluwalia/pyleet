@@ -1,6 +1,8 @@
 import sys
 import os
 import ast
+
+
 def parse_input(input_str):
     input_lines = input_str.strip().split('\n')
     inputs = []
@@ -20,9 +22,14 @@ def parse_input(input_str):
         inputs.append(current_input)
     return inputs
 
-def run_script(script_number, inputs):
+def parse_test(test_str):
+  expected_results = test_str.strip().split("\n")
+  return expected_results
+
+def run_script(script_number, inputs, tests):
     script_filename = f"{script_number}.py"
     script_path = os.path.join("lib", script_filename)
+    results = []
 
     if not os.path.isfile(script_path):
         print(f"Script '{script_filename}' not found in the 'lib' folder.")
@@ -36,11 +43,23 @@ def run_script(script_number, inputs):
             solve_function = script_globals['solve']
             for input_data in inputs:
                 result = solve_function(*input_data)
+                results.append(result)
                 print(f"Input: {input_data}, Result: {result}")
         else:
             print(f"Script '{script_filename}' does not contain a 'solve' function.")
+        print("debug", tests)
+        print("passed") if results == tests else print("failed")
     except Exception as e:
         print(f"Error while executing '{script_filename}': {e}")
+
+def read_content(file_path):
+  if not os.path.isfile(file_path):
+    raise ValueError(f"Input file '{file_path}' not found.")
+  else:
+    with open(file_path, 'r') as file:
+      data_str = file.read()
+  return data_str
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -48,14 +67,12 @@ if __name__ == "__main__":
     else:
         script_number = sys.argv[1]
         input_file_path = os.path.join("inputs", f"{script_number}_inp.txt")
+        tests_file_path = os.path.join("tests", f"{script_number}.txt")
 
-        if not os.path.isfile(input_file_path):
-            print(f"Input file '{input_file_path}' not found.")
-        else:
-            with open(input_file_path, 'r') as input_file:
-                input_data_str = input_file.read()
+        input_data_str = read_content(input_file_path)
+        tests_data_str = read_content(tests_file_path)
 
-            inputs = parse_input(input_data_str)
-            run_script(script_number, inputs)
-
+        tests = parse_test(tests_data_str)
+        inputs = parse_input(input_data_str)
+        run_script(script_number, inputs, tests)
 
